@@ -1,5 +1,8 @@
+# Minimal Telegram Music/Userbot
 import os
+import asyncio
 from pyrogram import Client
+from pyrogram.types import Message
 from pytgcalls import PyTgCalls
 from pytgcalls.types.input_stream import AudioPiped
 from pytgcalls.types import StreamType
@@ -11,48 +14,41 @@ STRING_SESSION = os.getenv("STRING_SESSION")
 OWNER_ID = int(os.getenv("OWNER_ID"))
 DEFAULT_VOLUME = int(os.getenv("DEFAULT_VOLUME", 50))
 
-# Initialize Pyrogram client (userbot)
+# Initialize Pyrogram client
 app = Client("userbot", api_id=API_ID, api_hash=API_HASH, session_string=STRING_SESSION)
 
 # Initialize PyTgCalls client
 pytgcalls = PyTgCalls(app)
 
-# Filter to respond only to OWNER_ID
-owner_filter = filters.user(OWNER_ID)
 
-@app.on_message(filters.command("play") & owner_filter)
-async def play_audio(client: Client, message: Message):
-    if len(message.command) < 2:
-        await message.reply("Usage: /play <audio_file_path>")
-        return
-    
-    audio_path = message.command[1]
-    chat_id = message.chat.id
-    
+# Function to join VC and play audio
+async def play_audio(chat_id: int, file_path: str):
     try:
-        # Check if already in a call; if not, join
-        if not pytgcalls.is_connected(chat_id):
-            await pytgcalls.join_group_call(
-                chat_id, 
-                AudioPiped(audio_path), 
-                stream_type=StreamType().pulse_stream  # For audio streaming
-            )
-        else:
-            # If already in call, change the stream
-            await pytgcalls.change_stream(chat_id, AudioPiped(audio_path))
-        
-        # Set volume
-        await pytgcalls.change_volume(chat_id, DEFAULT_VOLUME)
-        
-        await message.reply(f"Playing audio from {audio_path} at volume {DEFAULT_VOLUME}%")
+        await pytgcalls.join_group_call(
+            chat_id,
+            AudioPiped(file_path, stream_type=StreamType().local_stream),
+        )
+        print(f"✅ Playing audio in chat {chat_id}")
     except Exception as e:
-        await message.reply(f"Error playing audio: {str(e)}")
+        print(f"❌ Error joining VC: {e}")
+
+
+# Command listener example
+@app.on_message()
+async def handler(client: Client, message: Message):
+    if message.from_user and message.from_user.id == OWNER_ID:
+        if message.text and message.text.startswith("/play "):
+            file_path = message.text.split("/play ", 1)[1]
+            chat_id = message.chat.id
+            await play_audio(chat_id, file_path)
+
 
 async def main():
     await app.start()
     await pytgcalls.start()
-    print("Bot is running...")
-    await asyncio.Future()  # Keep running
+    print("✅ Bot is online and ready...")
+    await asyncio.Event().wait()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
