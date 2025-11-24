@@ -3,14 +3,14 @@ import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pytgcalls import PyTgCalls
-from pytgcalls.types import AudioPiped
+from pytgcalls.types import AudioPiped, StreamType
 
 # Load environment variables
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 STRING_SESSION = os.getenv("STRING_SESSION")
 OWNER_ID = int(os.getenv("OWNER_ID"))
-DEFAULT_VOLUME = int(os.getenv("DEFAULT_VOLUME", 50))
+DEFAULT_VOLUME = int(os.getenv("DEFAULT_VOLUME", 100))
 
 # Initialize Pyrogram client (userbot)
 app = Client("userbot", api_id=API_ID, api_hash=API_HASH, session_string=STRING_SESSION)
@@ -33,13 +33,17 @@ async def play_audio(client: Client, message: Message):
     try:
         # Check if already in a call; if not, join
         if not pytgcalls.is_connected(chat_id):
-            await pytgcalls.join_group_call(chat_id, AudioPiped(audio_path), stream_type=1)  # 1 for audio
+            await pytgcalls.join_group_call(
+                chat_id, 
+                AudioPiped(audio_path), 
+                stream_type=StreamType().pulse_stream  # For audio streaming
+            )
         else:
             # If already in call, change the stream
             await pytgcalls.change_stream(chat_id, AudioPiped(audio_path))
         
         # Set volume
-        await pytgcalls.change_volume_call(chat_id, DEFAULT_VOLUME)
+        await pytgcalls.change_volume(chat_id, DEFAULT_VOLUME)
         
         await message.reply(f"Playing audio from {audio_path} at volume {DEFAULT_VOLUME}%")
     except Exception as e:
