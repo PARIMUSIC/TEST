@@ -23,7 +23,6 @@ COPY . /app
 # Upgrade pip then install python deps
 RUN python -m pip install --upgrade pip setuptools wheel
 # Install pytgcalls from github (dev branch) which is intended for Linux servers
-RUN python -m pip install git+https://github.com/pytgcalls/pytgcalls.git@dev
 RUN python -m pip install -r /app/requirements.txt
 
 # Expose nothing (bot is outgoing). Set env and run main.
