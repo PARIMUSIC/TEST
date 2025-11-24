@@ -3,3 +3,4 @@ tgcrypto
 ffmpeg-python
 aiohttp
 python-dotenv
+pytgcalls==2.0.0
