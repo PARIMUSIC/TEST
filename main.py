@@ -10,7 +10,7 @@ API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 STRING_SESSION = os.getenv("STRING_SESSION")
 OWNER_ID = int(os.getenv("OWNER_ID"))
-DEFAULT_VOLUME = int(os.getenv("DEFAULT_VOLUME", 100))
+DEFAULT_VOLUME = int(os.getenv("DEFAULT_VOLUME", 50))
 
 # Initialize Pyrogram client (userbot)
 app = Client("userbot", api_id=API_ID, api_hash=API_HASH, session_string=STRING_SESSION)
