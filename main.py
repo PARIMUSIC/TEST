@@ -1,7 +1,7 @@
 import os
 from pyrogram import Client, filters
-from pytgcalls import GroupCallFactory
-from pytgcalls.types.input_stream import AudioPiped
+from pytgcalls import PyTgCalls
+from pytgcalls.types import AudioPiped
 
 # Environment variables
 API_ID = int(os.environ.get("API_ID", 0))
@@ -18,17 +18,17 @@ app = Client(
     session_string=STRING_SESSION,
 )
 
-# GroupCallFactory
-group_call_factory = GroupCallFactory(app, GroupCallFactory.MTPROTO_CLIENT_TYPE.PYROGRAM)
+# PyTgCalls client
+pytgcall = PyTgCalls(app)
 
 async def start_call(chat_id, audio_file):
-    group_call = group_call_factory.get_group_call()
-    await group_call.start(chat_id)
-    await group_call.change_stream(AudioPiped(audio_file))
-    await group_call.set_volume(DEFAULT_VOLUME)
-    return group_call
+    await pytgcall.join_group_call(
+        chat_id,
+        AudioPiped(audio_file),
+    )
+    await pytgcall.set_stream_volume(chat_id, DEFAULT_VOLUME)
 
-# Command example to play audio
+# Command to play audio
 @app.on_message(filters.user(OWNER_ID) & filters.command("play"))
 async def play_audio(client, message):
     if len(message.command) < 2:
@@ -39,6 +39,5 @@ async def play_audio(client, message):
     await start_call(chat_id, audio_file)
     await message.reply_text(f"🎵 Playing {audio_file} in VC!")
 
-# Start the bot
 print("Userbot started...")
 app.run()
