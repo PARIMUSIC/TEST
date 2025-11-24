@@ -13,9 +13,9 @@ WORKDIR /app
 # Upgrade pip
 RUN pip install --upgrade pip
 
-# Copy requirements and install Python dependencies
+# Copy requirements and install Python dependencies (with -U for py-tgcalls)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && pip install --upgrade py-tgcalls
 
 # Copy the bot code
 COPY main.py .
