@@ -1,3 +1,4 @@
-pyrogram>=2.0.106
-tgcrypto>=1.2.5
-pytgcalls>=3.0.0
+pyrogram>=2.0.0
+tgcrypto
+pytgcalls>=2.0.0
+ffmpeg-python
