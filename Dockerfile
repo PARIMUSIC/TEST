@@ -1,25 +1,25 @@
-# Use lightweight Python image
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies (required by PyTgCalls for audio handling)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (ffmpeg is required by pytgcalls)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
+# Copy requirements and install Python deps
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy your audio file and main script
+COPY audio.mp3 .
 COPY main.py .
 
-# Audio file (optional: you can also mount it at runtime)
-# COPY audio.mp3 .  # Uncomment if you want to bake it into the image
+# Set environment variables (you'll override these at runtime)
+ENV API_ID=123456
+ENV API_HASH=your_api_hash
+ENV SESSION_STRING=your_session_string
+ENV AUDIO_FILE=audio.mp3
+ENV DEFAULT_VOLUME=100
 
-# Run the bot
 CMD ["python", "main.py"]
