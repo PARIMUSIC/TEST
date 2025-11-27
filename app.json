@@ -15,11 +15,6 @@
       "description": "Pyrogram Session String",
       "required": true
     },
-    "OWNER_ID": {
-      "description": "Telegram user ID allowed to send audio (your ID)",
-      "required": true,
-      "value": "6836129142"
-    }
   },
   "buildpacks": [
     { "url": "heroku/python" }
