@@ -15,6 +15,10 @@
       "description": "Pyrogram Session String",
       "required": true
     },
+    "AUDIO_FILE": {
+      "description": "Path to audio file (default: audio.mp3)",
+      "value": "audio.mp3"
+    }
   },
   "buildpacks": [
     { "url": "heroku/python" }
