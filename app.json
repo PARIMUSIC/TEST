@@ -1,7 +1,7 @@
 {
   "name": "Telegram-Voice-VC-Userbot",
   "description": "A Telegram VC userbot that joins VC, plays audio, accepts audio from a specific user, and supports manual volume control.",
-  "repository": "https://github.com/WHITEHELL097/TEST",
+  "repository": "https://github.com/PARIMUSIC/TEST",
   "env": {
     "API_ID": {
       "description": "Telegram API ID from my.telegram.org",
