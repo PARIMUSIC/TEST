@@ -13,3 +13,6 @@
        API_ID, API_HASH, STRING_SESSION, OWNER_ID (optional), DEFAULT_VOLUME
    - Railway will build the Dockerfile automatically.
    - Start the service (it will run the CMD from Dockerfile).
+  
+     
+https://www.heroku.com/deploy?template=https://github.com/PARIMUSIC/TEST 
