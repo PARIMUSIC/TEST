@@ -1,54 +1,80 @@
-# Minimal Telegram Music/Userbot
-import os
-import asyncio
-from pyrogram import Client
-from pyrogram.types import Message
+# Install requirements:
+# pip install pyrogram tgcrypto pytgcalls
+
+from pyrogram import Client, filters
 from pytgcalls import PyTgCalls
 from pytgcalls.types.input_stream import AudioPiped
-from pytgcalls.types import StreamType
+import os
 
-# Load environment variables
-API_ID = int(os.getenv("API_ID"))
-API_HASH = os.getenv("API_HASH")
-STRING_SESSION = os.getenv("STRING_SESSION")
-OWNER_ID = int(os.getenv("OWNER_ID"))
-DEFAULT_VOLUME = int(os.getenv("DEFAULT_VOLUME", 50))
+# ---------------- CONFIG ----------------
+API_ID = 123456          # your Telegram API ID
+API_HASH = "your_api_hash"  # your Telegram API hash
+SESSION_STRING = "your_session_string"  # generated from Pyrogram
+AUDIO_FILE = "audio.mp3"  # path to your audio file
+DEFAULT_VOLUME = 100      # 100 = normal (valid range: 1–200)
 
-# Initialize Pyrogram client
-app = Client("userbot", api_id=API_ID, api_hash=API_HASH, session_string=STRING_SESSION)
+# Validate audio file
+if not os.path.exists(AUDIO_FILE):
+    raise FileNotFoundError(f"Audio file not found: {AUDIO_FILE}")
 
-# Initialize PyTgCalls client
-pytgcalls = PyTgCalls(app)
+# -------------- INIT -------------------
+app = Client(
+    name="vc_userbot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    session_string=SESSION_STRING
+)
+calls = PyTgCalls(app)
 
+current_volume = DEFAULT_VOLUME
 
-# Function to join VC and play audio
-async def play_audio(chat_id: int, file_path: str):
+# -------------- COMMANDS ----------------
+@app.on_message(filters.command("joinvc") & filters.me)
+async def join_voice(client, message):
+    chat_id = message.chat.id
     try:
-        await pytgcalls.join_group_call(
+        await calls.join_group_call(
             chat_id,
-            AudioPiped(file_path, stream_type=StreamType().local_stream),
+            AudioPiped(AUDIO_FILE, volume=current_volume)
         )
-        print(f"✅ Playing audio in chat {chat_id}")
+        await message.reply(f"✅ Joined VC with volume {current_volume}%")
     except Exception as e:
-        print(f"❌ Error joining VC: {e}")
+        await message.reply(f"❌ Error joining VC: {e}")
 
+@app.on_message(filters.command("leavevc") & filters.me)
+async def leave_voice(client, message):
+    chat_id = message.chat.id
+    try:
+        await calls.leave_group_call(chat_id)
+        await message.reply("✅ Left VC")
+    except Exception as e:
+        await message.reply(f"❌ Error leaving VC: {e}")
 
-# Command listener example
-@app.on_message()
-async def handler(client: Client, message: Message):
-    if message.from_user and message.from_user.id == OWNER_ID:
-        if message.text and message.text.startswith("/play "):
-            file_path = message.text.split("/play ", 1)[1]
-            chat_id = message.chat.id
-            await play_audio(chat_id, file_path)
+@app.on_message(filters.command("volume") & filters.me)
+async def set_volume(client, message):
+    global current_volume
+    try:
+        new_volume = int(message.text.split()[1])
+        if new_volume < 1:
+            new_volume = 1
+        elif new_volume > 200:  # PyTgCalls safe max
+            new_volume = 200
 
+        current_volume = new_volume
+        chat_id = message.chat.id
+        await calls.change_stream(
+            chat_id,
+            AudioPiped(AUDIO_FILE, volume=current_volume)
+        )
+        await message.reply(f"🔊 Volume set to {current_volume}%")
+    except IndexError:
+        await message.reply("❌ Usage: /volume <number> (1–200)")
+    except Exception as e:
+        await message.reply(f"❌ Error: {e}")
 
-async def main():
-    await app.start()
-    await pytgcalls.start()
-    print("✅ Bot is online and ready...")
-    await asyncio.Event().wait()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+# -------------- START BOT ----------------
+print("Starting userbot...")
+app.start()
+calls.start()
+print("✅ Userbot started. Use /joinvc, /leavevc, /volume commands.")
+app.idle()
